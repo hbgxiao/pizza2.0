@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Build a Pizza!</title>
+    <style>
+        body {
+            font-family: monospace;
+        }
+        b {
+            color: red;
+        }
+        button {
+            color: black;
+            font-family: monospace;
+        }
+        canvas {
+            display: block;
+            margin: 20px auto;
+        }
+        .column {
+            float: left;
+            width: 32%;
+            padding: 5px;
+            height: 300px; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Let's build a <b>Pizza</b>!</h1>
+    <div class="row">
+        <div class="column">
+          <h2>Choose a topping</h2>
+          <ul>
+            <li><button onclick="selectTopping('cheese')">Cheese</button></li>
+            &nbsp;
+            <li><button onclick="selectTopping('pepperoni')">Pepperoni</button></li>
+            &nbsp;
+            <li><button onclick="selectTopping('sausage')">Sausage</button></li>
+            &nbsp;
+            <li><button onclick="selectTopping('peppers')">Peppers</button></li>
+            &nbsp;
+            <li><button onclick="selectTopping('mushrooms')">Mushrooms</button></li>
+          </ul>
+        </div>
+        <div class="column">
+          <h2>Choose an amount</h2>
+          <ul>
+            <li><button onclick="selectAmount('entire')">Entire</button></li>
+            &nbsp;
+            <li><button onclick="selectAmount('half')">Half</button></li>
+            &nbsp;
+            <li><button onclick="selectAmount('quarter')">Quarter</button></li>
+            &nbsp;
+            <li><button onclick="selectAmount('eighth')">Eighth</button></li>
+          </ul>
+        </div>
+        <div class="column">
+          <h2>Let's add to your pizza!</h2>
+          <ul>
+            <li><button onclick="addSelectedToppings()">Click to add selected toppings</button></li>
+            &nbsp;
+            <li><button onclick="clearPizza()">Clear Pizza</button></li>
+          </ul>
+        </div>
+      </div>
+    <div class="row">
+        <canvas id="pizzaCanvas" width="400" height="400"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pizzaCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        let selectedTopping = null;
+        let selectedAmount = null;
+        const num_toppings = {
+            entire: 0,
+            half: 0,
+            quarter: 0,
+            eighth: 0
+        };
+
+        function drawPizza() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 190, 0, 2 * Math.PI, false);
+            ctx.fillStyle = 'yellow';
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'brown';
+            ctx.stroke();
+            ctx.closePath();
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 175, 0, 2 * Math.PI, false);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+            ctx.closePath();
+
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'white';
+            for (let i = 0; i < 8; i++) {
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                const angle = (i * Math.PI) / 4;
+                ctx.lineTo(centerX + 190 * Math.cos(angle), centerY + 190 * Math.sin(angle));
+                ctx.stroke();
+                ctx.closePath();
+            }
+        }
+
+        function selectTopping(topping) {
+            selectedTopping = topping;
+            console.log('Selected topping:', topping);
+        }
+
+        function selectAmount(amount) {
+            selectedAmount = amount;
+            console.log('Selected amount:', amount);
+        }
+
+        function addSelectedToppings() {
+            if (!selectedTopping || !selectedAmount) {
+                alert('Please select both a topping and an amount.');
+                return;
+            }
+            addTopping(selectedTopping, selectedAmount);
+            num_toppings[selectedAmount]++;
+            console.log('Number of toppings:', num_toppings);
+        }
+
+        function addTopping(topping, amount) {
+            let color, shape, quantity;
+            switch (topping) {
+                case 'cheese':
+                    color = 'yellow';
+                    shape = 'rectangle';
+                    break;
+                case 'pepperoni':
+                    color = 'darkred';
+                    shape = 'circle';
+                    break;
+                case 'sausage':
+                    color = 'brown';
+                    shape = 'circle';
+                    break;
+                case 'peppers':
+                    color = 'green';
+                    shape = 'rectangle';
+                    break;
+                case 'mushrooms':
+                    color = 'brown';
+                    shape = 'crescent';
+                    break;
+                default:
+                    return;
+            }
+
+            switch (amount) {
+                case 'entire':
+                    quantity = 160;
+                    break;
+                case 'half':
+                    quantity = 80;
+                    break;
+                case 'quarter':
+                    quantity = 40;
+                    break;
+                case 'eighth':
+                    quantity = 20;
+                    break;
+                default:
+                    return;
+            }
+
+            if (topping === 'cheese' || topping === 'peppers') {
+                quantity *= 2;
+            }
+
+            let startAngle, endAngle;
+            switch (amount) {
+                case 'entire':
+                    startAngle = -Math.PI / 2;
+                    endAngle = 2 * Math.PI;
+                    break;
+                case 'half':
+                    if (num_toppings['half'] % 2 === 1) {
+                        startAngle = Math.PI / 2;
+                        endAngle = 3 * Math.PI / 2;
+                    }
+                    else {
+                        startAngle = -Math.PI / 2;
+                        endAngle = Math.PI / 2;
+                    }
+                    break;
+                case 'quarter':
+                    if (num_toppings['quarter'] % 4 === 0) {
+                        startAngle = -Math.PI / 2;
+                        endAngle = 0;
+                    }
+                    if (num_toppings['quarter'] % 4 === 1) {
+                        startAngle = 0;
+                        endAngle = Math.PI / 2;
+                    }
+                    if (num_toppings['quarter'] % 4 === 2) {
+                        startAngle = Math.PI / 2;
+                        endAngle = Math.PI;
+                    }
+                    else {
+                        startAngle = Math.PI;
+                        endAngle = 3 * Math.PI / 2;
+                    }                 
+                    break;
+                case 'eighth':
+                    if (num_toppings['eighth'] % 8 === 0) {
+                        startAngle = -Math.PI / 2;
+                        endAngle = -Math.PI / 4;
+                    }
+                    if (num_toppings['eighth'] % 8 === 1) {
+                        startAngle = -Math.PI / 4;
+                        endAngle = 0;
+                    }
+                    if (num_toppings['eighth'] % 8 === 2) {
+                        startAngle = 0;
+                        endAngle = Math.PI / 4;
+                    }
+                    if (num_toppings['eighth'] % 8 === 3) {
+                        startAngle = Math.PI / 4;
+                        endAngle = Math.PI / 2;
+                    }
+                    if (num_toppings['eighth'] % 8 === 4) {
+                        startAngle = Math.PI / 2;
+                        endAngle = 3 * Math.PI / 4;
+                    }
+                    if (num_toppings['eighth'] % 8 === 5) {
+                        startAngle = 3 * Math.PI / 4;
+                        endAngle = Math.PI;
+                    }
+                    if (num_toppings['eighth'] % 8 === 6) {
+                        startAngle = Math.PI;
+                        endAngle = 5 * Math.PI / 4;
+                    }
+                    if (num_toppings['eighth'] % 8 === 7) {
+                        startAngle = 5 * Math.PI / 4;
+                        endAngle = 3 * Math.PI / 4;
+                    }                  
+                    break;
+                default:
+                    return;
+            }
+
+            for (let i = 0; i < quantity; i++) {
+                let angle, radius, x, y;
+                do {
+                    angle = Math.random() * (endAngle - startAngle) + startAngle;
+                    radius = Math.random() * 170; 
+                    x = centerX + radius * Math.cos(angle);
+                    y = centerY + radius * Math.sin(angle);
+                } while (!isInSegment(x, y, startAngle, endAngle));
+
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                if (shape === 'circle') {
+                    ctx.arc(x, y, 10, 0, 2 * Math.PI, false);
+                } else if (shape === 'rectangle') {
+                    ctx.rect(x, y, 10, 5); 
+                } else if (shape === 'crescent') {
+                    ctx.arc(x, y, 10, Math.PI / 4, Math.PI * 1.25);
+                }
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        function clearPizza() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPizza();
+            Object.keys(num_toppings).forEach(key => num_toppings[key] = 0);
+            console.log('Number of toppings:', num_toppings);
+        }
+
+        function isInSegment(x, y, startAngle, endAngle) {
+            const dx = x - centerX;
+            const dy = y - centerY;
+            let angle = Math.atan2(dy, dx);
+            if (angle < -Math.PI / 2) angle += 2 * Math.PI; 
+            return startAngle <= angle && angle <= endAngle;
+        }
+
+        drawPizza();
+    </script>
+</body>
+</html>
